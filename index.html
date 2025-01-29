@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- displays site properly based on user's device -->
+
+  <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+  <link href="./css/style.css" rel="stylesheet">
+  
+
+  <title>Memory Game</title>
+</head>
+<body>
+  <main class="container">
+    <h3 class="title">Memory game</h3>
+    <div class="controls">
+      <div class="controls-container">
+
+        <div id="game-screen-1" class="game-screen active blue">
+          <h2>Welcome to the Memory Game!</h2>
+          <p>Flip over two cards to find matching pairs. If they match, keep them and go again. Keep playing until all pairs are found.</p>
+          <p>Ready to test your memory and have fun? Enjoy the challenge! Let's find those pairs!🎴😊</p>
+          <button id="start-control">Start Game</button>
+        </div>
+
+        <div id="game-screen-2" class="game-screen">
+          <h2>Ready to test your memory skills?</h2>
+          <p>Choose your challenge:</p>
+          <ul class="diff-level">
+            <li role="button" tabindex="0" id="diff-1">Easy Peasy</li>
+            <li role="button" tabindex="0" id="diff-2">Medium Mode</li>
+            <li role="button" tabindex="0" id="diff-3">Hard-as-Nails</li>
+          </ul>
+        </div>
+
+        <div id="game-screen-3" class="game-screen">
+          <label class="control-label">Time: <span id="timer">00:00</span></label>
+          <label class="control-label">Num. Moves: <span id="moves-count">0</span></label>
+        </div>
+      </div>
+    </div>
+    <ul class="card-list" id="card-list">
+      <!-- card grid here -->
+    </ul>
+  </main>
+  <div class="modal-overlay" id="game-over">
+    <div class="modal-content">
+      <h2>Congratulations!</h2>
+      <h2>You won the game.</h2>
+      <button id="play-again">Play Again</button>
+    </div>
+  </div>
+  <footer class="footer">
+    <div class="attribution">
+      Coded by <a href="#">Juan Pablo Pinedo</a>.
+    </div>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script src="./js/index.js"></script>
+  
+</body>
+</html>
