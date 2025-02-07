@@ -56,7 +56,6 @@ const Game = {
     return pairsArray.map(id => ({id, paired: false}));
   },
   setPairFound: function(flippedCards) {
-    console.log('flippedCards', flippedCards)
     flippedCards.forEach(card => {
       const boundOnCardClick = this.eventListeners.get(card);
       card.removeEventListener('click', boundOnCardClick);
@@ -70,13 +69,11 @@ const Game = {
   setPairStorage: function(id) {
     const storedCards = sessionStorage.getItem('cardList');
     const cards = JSON.parse(storedCards || '[]');
-    console.log(cards);
     if(cards.length) {
       const newCards = cards.map(card => {
         if(card.id === id) return ({id, paired: true});
         return card;
       });
-      console.log(newCards);
       sessionStorage.setItem('cardList', JSON.stringify(newCards));
     }
   },
@@ -201,7 +198,6 @@ const Game = {
   },
   storeCardsState: function(itemIds) {
     const cards = itemIds.map(itemId => ({id: itemId, paired: false}));
-    console
     sessionStorage.setItem('cardList', JSON.stringify(cards));
   },
   storeGameState: function() {
@@ -264,12 +260,16 @@ const Game = {
       this.startTimer(parseInt(storedSeconds));
       // load moves from storage
       this.movesCount = parseInt(storedMoves);
-      this.totalMovesCount = parseInt(storedTotalMoves);
+      
       this.updateMoves();
       this.started = true;
       this.goToScreen(3);
     } else {
       this.goToScreen(1);
+    }
+    if(storedTotalMoves) {
+      this.totalMovesCount = parseInt(storedTotalMoves);
+      this.updateMoves();
     }
   },
   load: function() {
