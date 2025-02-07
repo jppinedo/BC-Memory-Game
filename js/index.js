@@ -17,10 +17,10 @@ const Game = {
   startGameBtn: null,
   diffSelector: null,
   playAgainButton: null,
-  flipSound: new Audio('sound/flip.wav'),
-  flipBackSound: new Audio('sound/flip_back.wav'),
-  pairSound: new Audio('sound/pair.wav'),
-  winSound: new Audio('sound/win.wav'),
+  flipSound: new Audio('./sound/flip.wav'),
+  flipBackSound: new Audio('./sound/flip_back.wav'),
+  pairSound: new Audio('./sound/pair.wav'),
+  winSound: new Audio('./sound/win.wav'),
   eventListeners: new Map(),
   setDifficulty: function(diff) {
     switch(diff) {
