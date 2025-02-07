@@ -7,18 +7,20 @@ const Game = {
   cardListWrapper: null,
   cardsFlipped: 0,
   movesCount: 0,
+  totalMovesCount: 0,
   pairsFound: 0,
   movesElement: null,
+  totalMovesElement: null,
   timerElement: null,
   timerInterval: null,
   gameOverModal: null,
   startGameBtn: null,
   diffSelector: null,
   playAgainButton: null,
-  flipSound: new Audio('../sound/flip.wav'),
-  flipBackSound: new Audio('../sound/flip_back.wav'),
-  pairSound: new Audio('../sound/pair.wav'),
-  winSound: new Audio('../sound/win.wav'),
+  flipSound: new Audio('sound/flip.wav'),
+  flipBackSound: new Audio('sound/flip_back.wav'),
+  pairSound: new Audio('sound/pair.wav'),
+  winSound: new Audio('sound/win.wav'),
   eventListeners: new Map(),
   setDifficulty: function(diff) {
     switch(diff) {
@@ -50,25 +52,43 @@ const Game = {
 
     return pairs;
   },
+  getFormattedPairs: function(pairsArray) {
+    return pairsArray.map(id => ({id, paired: false}));
+  },
   setPairFound: function(flippedCards) {
+    console.log('flippedCards', flippedCards)
     flippedCards.forEach(card => {
       const boundOnCardClick = this.eventListeners.get(card);
       card.removeEventListener('click', boundOnCardClick);
       card.classList.add('card-paired');
       card.classList.remove('card-flipped');
     });
-
+    this.setPairStorage(parseInt(flippedCards[0].getAttribute('data-id')));
     this.cardsFlipped = 0;
     this.pairsFound += 1;
   },
-  startTimer: function() {
-    let seconds = 0;
+  setPairStorage: function(id) {
+    const storedCards = sessionStorage.getItem('cardList');
+    const cards = JSON.parse(storedCards || '[]');
+    console.log(cards);
+    if(cards.length) {
+      const newCards = cards.map(card => {
+        if(card.id === id) return ({id, paired: true});
+        return card;
+      });
+      console.log(newCards);
+      sessionStorage.setItem('cardList', JSON.stringify(newCards));
+    }
+  },
+  startTimer: function(seconds = 0) {
     this.timerInterval = setInterval(() => {
       seconds++;
       const minutes = Math.floor(seconds / 60);
       const remainingSeconds = seconds % 60;
-      this.timerElement.textContent = 
-        `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+      const time = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+      this.timerElement.textContent = time;
+      sessionStorage.setItem('gameTimer', seconds);
+      
     }, 1000);
   },
   stopTimer: function() {
@@ -96,8 +116,14 @@ const Game = {
     this.eventListeners.clear(); // Clear the map after removing all listeners
   },
   updateMoves: function(add = false) {
-    if(add) this.movesCount++;
+    if(add) {
+      this.movesCount++;
+      this.totalMovesCount++;
+    }
     this.movesElement.textContent = this.movesCount;
+    this.totalMovesElement.textContent = this.totalMovesCount;
+    sessionStorage.setItem('gameMoves', this.movesCount);
+    localStorage.setItem('totalMoves', this.totalMovesCount);
   },
   isPairCards: function(firstCard, secondCard) {
     const firstCardId = firstCard.classList;
@@ -142,16 +168,17 @@ const Game = {
       }
     }
   },
-  createCardList: function (itemIds) {
+  createCardList: function (items) {
     const countTracker = {};
     const fragment = document.createDocumentFragment();
 
-    itemIds.forEach((item) => {
-      if (!countTracker[item]) countTracker[item] = 0;
-      countTracker[item]++;
+    items.forEach(item => {
+      if (!countTracker[item.id]) countTracker[item.id] = 0;
+      countTracker[item.id]++;
       const li = document.createElement('li');
-      li.className = `card card-${item}`;
-      li.id = `card-${item}-${countTracker[item]}`;
+      li.className = `card card-${item.id} ${item.paired ? 'card-paired' : ''}`;
+      li.id = `card-${item.id}-${countTracker[item.id]}`;
+      li.setAttribute('data-id', item.id);
 
       li.innerHTML = `
           <div class='card-inner'>
@@ -172,6 +199,14 @@ const Game = {
       this.cardListWrapper.innerHTML = '';
       this.cardListWrapper.appendChild(cardList); 
   },
+  storeCardsState: function(itemIds) {
+    const cards = itemIds.map(itemId => ({id: itemId, paired: false}));
+    console
+    sessionStorage.setItem('cardList', JSON.stringify(cards));
+  },
+  storeGameState: function() {
+    console.log('store game state')
+  },
   startNewGame: function() {
     if(this.started) this.removeAllEventListeners();
     this.cardsFlipped = 0;
@@ -179,20 +214,23 @@ const Game = {
     this.movesCount = 0;
     this.updateMoves();
     const itemIds = this.getRandomPairs(this.gridSize);
-    const cardList = this.createCardList(itemIds);
+    const cardList = this.createCardList(this.getFormattedPairs(itemIds));
     this.cardList = cardList;
     this.renderCardList(cardList);
     this.started = true;
     this.goToScreen(3);
     this.resetTimer();
     this.startTimer();
+    this.storeCardsState(itemIds);
+    this.storeGameState();
   },
   setNodeElements: function() {
     this.startGameBtn = document.getElementById('start-control');
     this.diffSelector = document.querySelectorAll('.diff-level li');
     this.playAgainButton = document.getElementById('play-again');
     this.cardListWrapper = document.getElementById('card-list');
-    this.movesElement = document.getElementById('moves-count');
+    this.movesElement = document.getElementById('game-moves');
+    this.totalMovesElement = document.getElementById('total-moves');
     this.timerElement = document.getElementById('timer');
     this.gameOverModal = document.getElementById('game-over');
   },
@@ -211,11 +249,36 @@ const Game = {
       thisGame.removeCards();
     });
   },
+  populateFromStorage: function() {
+    const storedCards = sessionStorage.getItem('cardList');
+    const storedSeconds = sessionStorage.getItem('gameTimer');
+    const storedMoves = sessionStorage.getItem('gameMoves');
+    const storedTotalMoves = localStorage.getItem('totalMoves');
+
+    if(storedCards && storedSeconds && storedMoves) {
+      // load cards from storage
+      const cardList = this.createCardList(JSON.parse(storedCards));
+      this.cardList = cardList;
+      this.renderCardList(cardList);
+      // load timer from strage
+      this.startTimer(parseInt(storedSeconds));
+      // load moves from storage
+      this.movesCount = parseInt(storedMoves);
+      this.totalMovesCount = parseInt(storedTotalMoves);
+      this.updateMoves();
+      this.started = true;
+      this.goToScreen(3);
+    } else {
+      this.goToScreen(1);
+    }
+  },
   load: function() {
     this.setNodeElements();
     this.setEventHandlers();
+    this.populateFromStorage();
   }
 }
 
 Game.load();
+
 
