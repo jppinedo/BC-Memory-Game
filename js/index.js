@@ -254,6 +254,7 @@ const Game = {
     const storedSeconds = sessionStorage.getItem('gameTimer');
     const storedMoves = sessionStorage.getItem('gameMoves');
     const storedTotalMoves = localStorage.getItem('totalMoves');
+    console.log('storedTotalMoves: ', storedTotalMoves)
 
     if(storedCards && storedSeconds && storedMoves) {
       // load cards from storage
@@ -264,12 +265,17 @@ const Game = {
       this.startTimer(parseInt(storedSeconds));
       // load moves from storage
       this.movesCount = parseInt(storedMoves);
-      this.totalMovesCount = parseInt(storedTotalMoves);
+      
       this.updateMoves();
       this.started = true;
       this.goToScreen(3);
     } else {
       this.goToScreen(1);
+    }
+    if(storedTotalMoves) {
+      this.totalMovesCount = parseInt(storedTotalMoves);
+      this.updateMoves();
+      console.log('this.totalMovesCount: ', this.totalMovesCount);
     }
   },
   load: function() {
